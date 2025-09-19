@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Resizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0078d7;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #0078d7;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f0f8ff;
+        }
+        .preview-area {
+            display: none;
+            margin: 20px 0;
+        }
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .icon-preview img {
+            display: block;
+            margin: 0 auto 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        canvas {
+            display: none;
+        }
+        .download-btn {
+            background: #0078d7;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .download-btn:hover {
+            background: #106ebe;
+        }
+        .tip {
+            background: #e7f3ff;
+            border-left: 4px solid #0078d7;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚍 PWA Icon Resizer for Bus Tracker</h1>
+        
+        <div class="tip">
+            <strong>📁 Upload your app.png icon</strong><br>
+            This tool will create properly sized icons (192x192 and 512x512) optimized for PWA installation.
+        </div>
+
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <p>📤 Click here to upload your app.png icon</p>
+            <p style="color: #666; font-size: 14px;">Supports: PNG, JPG, JPEG</p>
+        </div>
+
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+        <div class="preview-area" id="previewArea">
+            <h3>Icon Previews:</h3>
+            <div id="iconPreviews"></div>
+            <button onclick="downloadAll()" class="download-btn" style="background: #28a745; font-size: 16px; padding: 12px 24px;">
+                📦 Download All Optimized Icons
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden canvases for image processing -->
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const previewArea = document.getElementById('previewArea');
+        const iconPreviews = document.getElementById('iconPreviews');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    createIcons(img);
+                    previewArea.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function createIcons(sourceImg) {
+            const sizes = [192, 512];
+            iconPreviews.innerHTML = '';
+
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`canvas${size}`);
+                const ctx = canvas.getContext('2d');
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, size, size);
+                
+                // Calculate scaling to fit image properly
+                const scale = Math.min(size / sourceImg.width, size / sourceImg.height);
+                const newWidth = sourceImg.width * scale;
+                const newHeight = sourceImg.height * scale;
+                const x = (size - newWidth) / 2;
+                const y = (size - newHeight) / 2;
+                
+                // Draw image centered and scaled
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(sourceImg, x, y, newWidth, newHeight);
+                
+                // Create preview
+                const preview = document.createElement('div');
+                preview.className = 'icon-preview';
+                
+                const previewImg = document.createElement('img');
+                previewImg.src = canvas.toDataURL('image/png');
+                previewImg.width = size === 192 ? 96 : 128;
+                previewImg.height = size === 192 ? 96 : 128;
+                
+                const label = document.createElement('div');
+                label.textContent = `${size}x${size}px`;
+                label.style.fontWeight = 'bold';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = `Download ${size}x${size}`;
+                downloadBtn.className = 'download-btn';
+                downloadBtn.onclick = () => downloadIcon(canvas, `app-${size}.png`);
+                
+                preview.appendChild(previewImg);
+                preview.appendChild(label);
+                preview.appendChild(downloadBtn);
+                iconPreviews.appendChild(preview);
+            });
+        }
+
+        function downloadIcon(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadAll() {
+            downloadIcon(document.getElementById('canvas192'), 'app-192.png');
+            setTimeout(() => {
+                downloadIcon(document.getElementById('canvas512'), 'app-512.png');
+            }, 500);
+        }
+    </script>
+</body>
+</html>
