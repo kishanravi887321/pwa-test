@@ -1,40 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notes PWA</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Live Bus on Road Route</title>
 
-  <!-- Tailwind for styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#2563eb"/>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Theme and Mobile -->
+  <meta name="theme-color" content="#0078d7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BusTracker">
+  
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/61/61212.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="https://cdn-icons-png.flaticon.com/192/61/61212.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://cdn-icons-png.flaticon.com/192/61/61212.png">
+  
+  <!-- Microsoft Tiles -->
+  <meta name="msapplication-TileColor" content="#0078d7">
+  <meta name="msapplication-TileImage" content="https://cdn-icons-png.flaticon.com/192/61/61212.png">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
+  <style>
+    #map { height: 100vh; width: 100%; }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex flex-col items-center p-6 min-h-screen">
+<body>
+  <div id="map"></div>
+  
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
-  <h1 class="text-3xl font-bold mb-4 text-blue-600">📝 Notes PWA</h1>
-
-  <!-- Input box -->
-  <div class="flex w-full max-w-md mb-4">
-    <input id="noteInput" type="text" placeholder="Write a note..." 
-      class="flex-1 p-2 border rounded-l-lg focus:outline-none" />
-    <button onclick="addNote()" 
-      class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition">
-      Add
-    </button>
-  </div>
-
-  <!-- Notes List -->
-  <ul id="notesList" class="w-full max-w-md space-y-2"></ul>
-
-  <script src="app.js"></script>
   <script>
-    // Register Service Worker
+    // Init map
+    const map = L.map("map").setView([28.6315, 77.2167], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+    }).addTo(map);
+
+    const busIcon = L.icon({
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/61/61212.png",
+      iconSize: [40, 40],
+    });
+
+    let busMarker = L.marker([28.6315, 77.2167], { icon: busIcon }).addTo(map);
+
+    L.Routing.control({
+      waypoints: [
+        L.latLng(28.6315, 77.2167), // CP
+        L.latLng(28.7206, 77.1076)  // Rohini
+      ],
+      createMarker: () => null,
+      addWaypoints: false,
+      routeWhileDragging: false,
+      lineOptions: { styles: [{ color: "blue", weight: 5 }] }
+    })
+    .on("routesfound", function(e) {
+      const coords = e.routes[0].coordinates;
+      let i = 0;
+      setInterval(() => {
+        if (i < coords.length) {
+          busMarker.setLatLng([coords[i].lat, coords[i].lng]);
+          map.panTo([coords[i].lat, coords[i].lng]);
+          i++;
+        }
+      }, 200);
+    })
+    .addTo(map);
+
+    // Register service worker and handle PWA installation
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(() => console.log("✅ Service Worker Registered"))
-        .catch(err => console.error("SW registration failed:", err));
+      navigator.serviceWorker.register("./service-worker.js")
+        .then((registration) => {
+          console.log("Service Worker registered successfully:", registration.scope);
+        })
+        .catch((error) => {
+          console.log("Service Worker registration failed:", error);
+        });
     }
+
+    // PWA Installation prompt
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+      // Show install button or banner
+      showInstallPrompt();
+    });
+
+    function showInstallPrompt() {
+      // Create install button
+      const installBtn = document.createElement('button');
+      installBtn.textContent = '📱 Install App';
+      installBtn.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: #0078d7;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      `;
+      
+      installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response: ${outcome}`);
+          deferredPrompt = null;
+          installBtn.remove();
+        }
+      });
+      
+      document.body.appendChild(installBtn);
+    }
+
+    window.addEventListener('appinstalled', () => {
+      console.log('PWA was installed');
+      deferredPrompt = null;
+    });
   </script>
 </body>
 </html>

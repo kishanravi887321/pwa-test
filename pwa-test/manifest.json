@@ -1,20 +1,27 @@
 {
-  "name": "Notes PWA",
-  "short_name": "Notes",
-  "start_url": ".",
+  "name": "Live Bus Tracker",
+  "short_name": "BusTracker",
+  "description": "Real-time bus tracking and route navigation",
+  "start_url": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#0078d7",
+  "scope": "./",
+  "lang": "en-US",
+  "categories": ["transportation", "navigation", "travel"],
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3039/3039387.png",
+      "src": "https://cdn-icons-png.flaticon.com/192/61/61212.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3039/3039387.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/61/61212.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
