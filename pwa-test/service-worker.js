@@ -1,15 +1,10 @@
+const CACHE_NAME = "notes-pwa-v1";
+const urlsToCache = ["/", "/index.html", "/app.js", "/style.css"];
+
 self.addEventListener("install", (event) => {
-  console.log("Service Worker: Installed");
   event.waitUntil(
-    caches.open("bus-tracker-cache").then((cache) => {
-      return cache.addAll([
-        "./index.html",
-        "./manifest.json",
-        "https://unpkg.com/leaflet/dist/leaflet.css",
-        "https://unpkg.com/leaflet/dist/leaflet.js",
-        "https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css",
-        "https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"
-      ]);
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
     })
   );
 });
