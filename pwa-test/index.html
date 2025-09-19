@@ -3,21 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello PWA</title>
+  <title>Notes PWA</title>
 
-  <!-- Link to Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#317EFB"/>
-
-  <!-- Simple styling -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Tailwind for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb"/>
 </head>
-<body>
-  <h1>Hello PWA 🚀</h1>
-  <p>This is a test Progressive Web App.</p>
+<body class="bg-gray-100 text-gray-800 flex flex-col items-center p-6 min-h-screen">
 
+  <h1 class="text-3xl font-bold mb-4 text-blue-600">📝 Notes PWA</h1>
+
+  <!-- Input box -->
+  <div class="flex w-full max-w-md mb-4">
+    <input id="noteInput" type="text" placeholder="Write a note..." 
+      class="flex-1 p-2 border rounded-l-lg focus:outline-none" />
+    <button onclick="addNote()" 
+      class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition">
+      Add
+    </button>
+  </div>
+
+  <!-- Notes List -->
+  <ul id="notesList" class="w-full max-w-md space-y-2"></ul>
+
+  <script src="app.js"></script>
   <script>
-    // Register the service worker
+    // Register Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("service-worker.js")
         .then(() => console.log("✅ Service Worker Registered"))
