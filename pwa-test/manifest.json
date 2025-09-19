@@ -8,12 +8,12 @@
   "description": "Live bus tracking and route navigation",
   "icons": [
     {
-      "src": "icons/bus-192.png",
+      "src": "https://cdn-icons-png.flaticon.com/192/61/61212.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/bus-512.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/61/61212.png",
       "sizes": "512x512",
       "type": "image/png"
     }
