@@ -3,6 +3,14 @@
 <head>
   <meta charset="utf-8">
   <title>Live Bus on Road Route</title>
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#0078d7">
+
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
   <style>
@@ -11,52 +19,54 @@
 </head>
 <body>
   <div id="map"></div>
+  
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
     // Init map
-    const map = L.map("map").setView([28.6315, 77.2167], 13); // Delhi CP
+    const map = L.map("map").setView([28.6315, 77.2167], 13);
 
-    // Tiles
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
     }).addTo(map);
 
-    // Custom bus icon
     const busIcon = L.icon({
       iconUrl: "https://cdn-icons-png.flaticon.com/512/61/61212.png",
       iconSize: [40, 40],
     });
 
-    // Add bus marker (start point)
     let busMarker = L.marker([28.6315, 77.2167], { icon: busIcon }).addTo(map);
 
-    // Routing: Connaught Place -> Rohini
     L.Routing.control({
       waypoints: [
-        L.latLng(28.6315, 77.2167), // Connaught Place
+        L.latLng(28.6315, 77.2167), // CP
         L.latLng(28.7206, 77.1076)  // Rohini
       ],
-      createMarker: () => null, // hide default markers
+      createMarker: () => null,
       addWaypoints: false,
       routeWhileDragging: false,
       lineOptions: { styles: [{ color: "blue", weight: 5 }] }
     })
     .on("routesfound", function(e) {
-      const coords = e.routes[0].coordinates; // full road path coords
-      console.log("Route points:", coords.length);
-
+      const coords = e.routes[0].coordinates;
       let i = 0;
       setInterval(() => {
         if (i < coords.length) {
           busMarker.setLatLng([coords[i].lat, coords[i].lng]);
-          map.panTo([coords[i].lat, coords[i].lng]); // follow bus
+          map.panTo([coords[i].lat, coords[i].lng]);
           i++;
         }
-      }, 200); // move every 200ms
+      }, 200);
     })
     .addTo(map);
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker Registered"));
+    }
   </script>
 </body>
 </html>
